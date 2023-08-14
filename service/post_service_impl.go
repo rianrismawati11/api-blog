@@ -6,6 +6,7 @@ import (
 	"api-blog/model/domain"
 	"context"
 	"database/sql"
+	"path/filepath"
 
 	"api-blog/model/web"
 	"api-blog/repository"
@@ -27,26 +28,34 @@ func NewPostService(postRepository repository.PostRepository, DB *sql.DB, valida
 	}
 }
 
-func (service *PostServiceImpl) Create(ctx context.Context, request web.PostCreateRequest) web.PostResponse {
+func (service *PostServiceImpl) Create(ctx context.Context, request web.PostCreateRequest) web.PostResponseWithoutCategoryDetail {
 	err := service.Validate.Struct(request)
 	helper.PanicIfError(err)
 	tx, err := service.DB.Begin()
 	helper.PanicIfError(err)
 	defer helper.CommitorRollback(tx)
 
+	filePath := request.FeaturedImage
+	fileExtension := filepath.Ext(filePath)
+	extension := fileExtension[1:]
+
+	// fmt.Printf("type: %T\n", fileExtension)
+
 	post := domain.Post{
-		FeaturedImage: request.FeaturedImage,
-		Title:         request.Title,
-		Description:   request.Description,
-		CategoryId:    request.CategoryId,
+		FeaturedImage:      request.FeaturedImage,
+		TitleFeaturedImage: request.TitleFeaturedImage,
+		TypeFeaturedImage:  extension,
+		Title:              request.Title,
+		Description:        request.Description,
+		CategoryId:         request.CategoryId,
 	}
 
 	post = service.PostRepository.Save(ctx, tx, post)
 
-	return helper.ToPostResponse(post)
+	return helper.ToPostResponseWithoutCategoryDetail(post)
 }
 
-func (service *PostServiceImpl) Update(ctx context.Context, request web.PostUpdateRequest) web.PostResponse {
+func (service *PostServiceImpl) Update(ctx context.Context, request web.PostUpdateRequest) web.PostResponseWithoutCategoryDetail {
 	tx, err := service.DB.Begin()
 	helper.PanicIfError(err)
 	defer helper.CommitorRollback(tx)
@@ -57,14 +66,20 @@ func (service *PostServiceImpl) Update(ctx context.Context, request web.PostUpda
 		panic(exception.NewNotFoundError(err.Error()))
 	}
 
+	filePath := request.FeaturedImage
+	fileExtension := filepath.Ext(filePath)
+	extension := fileExtension[1:]
+
 	post.FeaturedImage = request.FeaturedImage
+	post.TitleFeaturedImage = request.TitleFeaturedImage
+	post.TypeFeaturedImage = extension
 	post.Title = request.Title
 	post.Description = request.Description
 	post.CategoryId = request.CategoryId
 
 	post = service.PostRepository.Update(ctx, tx, post)
 
-	return helper.ToPostResponse(post)
+	return helper.ToPostResponseWithoutCategoryDetail(post)
 }
 
 func (service *PostServiceImpl) Delete(ctx context.Context, postId int) {

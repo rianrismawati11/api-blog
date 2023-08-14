@@ -5,12 +5,30 @@ import (
 	"api-blog/model/web"
 )
 
+func ToPostResponseWithoutCategoryDetail(post domain.Post) web.PostResponseWithoutCategoryDetail {
+	return web.PostResponseWithoutCategoryDetail{
+		Id: post.Id,
+		FeaturedImage: web.ImageDetail{
+			Url:   post.FeaturedImage,
+			Title: post.TitleFeaturedImage,
+			Type:  post.TypeFeaturedImage,
+		},
+		Title:       post.Title,
+		Description: post.Description,
+		CategoryId:  post.CategoryId,
+	}
+}
+
 func ToPostResponse(post domain.Post) web.PostResponse {
 	return web.PostResponse{
-		Id:            post.Id,
-		FeaturedImage: post.FeaturedImage,
-		Title:         post.Title,
-		Description:   post.Description,
+		Id: post.Id,
+		FeaturedImage: web.ImageDetail{
+			Url:   post.FeaturedImage,
+			Title: post.TitleFeaturedImage,
+			Type:  post.TypeFeaturedImage,
+		},
+		Title:       post.Title,
+		Description: post.Description,
 		CategoryDetail: web.CategoryDetail{
 			Id:   post.CategoryDetail.Id,
 			Name: post.CategoryDetail.Name,
